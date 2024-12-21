@@ -44,6 +44,9 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: "Failed to process chat message" });
   }
 });
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
