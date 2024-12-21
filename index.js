@@ -11,20 +11,32 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
+const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+const chat = model.startChat({
+  generationConfig: {
+    temperature: 0.7,
+    maxOutputTokens: 1000,
+  },
+});
+let chatHistory = [];
+
 app.post("/chat", async (req, res) => {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const chat = model.startChat({
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1000,
-      },
-    });
-
     const { message } = req.body;
     const result = await chat.sendMessage(message);
     const response = await result.response;
+
+    chatHistory.push({
+      role: "user",
+      parts: message,
+    });
+    chatHistory.push({
+      role: "model",
+      parts: response.text(),
+    });
 
     res.json({ response: response.text() });
   } catch (error) {
